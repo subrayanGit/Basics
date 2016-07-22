@@ -1,0 +1,571 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+//echo base_url();
+?>
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+  </head>
+<style>
+.btn-sample {
+ color: #ffffff;
+ background-color: #BD1B28;
+ border-color: #000000;
+}
+
+.btn-sample:hover,
+.btn-sample:focus,
+.btn-sample:active,
+.btn-sample.active,
+.open .dropdown-toggle.btn-sample {
+ color: #ffffff;
+ background-color: #851F1F;
+ border-color: #000000;
+}
+
+.btn-sample:active,
+.btn-sample.active,
+.open .dropdown-toggle.btn-sample {
+ background-image: none;
+}
+
+.btn-sample.disabled,
+.btn-sample[disabled],
+fieldset[disabled] .btn-sample,
+.btn-sample.disabled:hover,
+.btn-sample[disabled]:hover,
+fieldset[disabled] .btn-sample:hover,
+.btn-sample.disabled:focus,
+.btn-sample[disabled]:focus,
+fieldset[disabled] .btn-sample:focus,
+.btn-sample.disabled:active,
+.btn-sample[disabled]:active,
+fieldset[disabled] .btn-sample:active,
+.btn-sample.disabled.active,
+.btn-sample[disabled].active,
+fieldset[disabled] .btn-sample.active {
+ background-color: #BD1B28;
+ border-color: #000000;
+}
+
+.btn-sample .badge {
+ color: #BD1B28;
+ background-color: #ffffff;
+} 
+
+</style>
+
+<!-- style="display:none;position: absolute;z-index: 1;"-->
+  <body>
+
+ <button id="filter_inital" class="btn-sample" > Filter </button>
+
+ <div id="filter_categories" style="display:none;"> 
+
+    <button class="stores btn-sample stores-category"> Filter Stores </button> 
+    <button class="offers btn-sample offers-category"> Filter Offers </button> 
+    <button class="atms btn-sample atms-category">   Filter ATMs   </button> 
+    <button class="classifieds btn-sample classifieds-category"> Filter Classifieds</button> 
+
+</div>
+
+
+<div id="filters-atm" style="display:none;" >
+  <select id="manufacturer"><!-- <option value="all"> Select a manufacturer--> </option> </select> 
+  <select id="coin"> <!--<option value="none"> Select a coin type </option>--> </select> 
+  <select id="country"> <option value=""> All Country </option> </select> 
+  <select id="distance"> <!-- <option value="none"> Select Distance </option>--> </select>
+  <select id="AllAtms"> <!-- <option value="all"> ATM </option> --> </select>
+  Zipcode <input type="text" id="zipcode"> 
+  Place   <input type="search" id="place_atm"> <br>
+  <button class="btn-sample filter_get_result_atm"> Filter </button>
+  <button class="btn-sample remove_filter"> Remove Filter </button>
+</div>
+
+<div id="filters-stores" style="display:none;" >
+  <select id="category-stores"> </select> 
+  <select id="distance-stores"> </select> 
+  <select id="country-stores"> </select> 
+  <select id="coinType-stores"> </select>
+  <select id="all_stores-stores"> </select>
+  Zipcode <input type="text"   id="zipcode_store"> 
+  Place   <input type="search" id="place_store"> <br>
+  <button class="btn-sample filter_get_result_stores"> Filter </button>
+  <button class="btn-sample remove_filter"> Remove Filter </button>
+</div>
+
+
+<div id="filters-offers" style="display:none;" >
+  <select id="category-offer"> </select> 
+  <select id="offer_type-offer"> </select> 
+  <select id="all_stores-offer"> </select> 
+  <button class="btn-sample filter_get_result_offers"> Filter </button>
+  <button class="btn-sample remove_filter"> Remove Filter     </button>
+</div>
+
+
+  <center id="result_div"> </center>
+
+   <center id="loader">  Fetching Data.... <br /> 
+     <img src="http://localhost/map_ci/assets/img/ajax-loader.gif">
+   </center> 
+
+
+    <div id="map-canvas" style="height:700px"> </div>
+
+   </body>
+
+</html>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaPUOvueL6rh8f7fP8vrnQfTZcwh_oNww"></script>
+    <script type="text/javascript" src="http://localhost/map_ci/assets/js/markerclusterer.js"></script>
+<script>
+ var markers = [];
+ var map;
+ var infoWindow;
+var mapStyles = [{featureType:'water',elementType:'all',stylers:[{hue:'#d7ebef'},{saturation:-5},{lightness:54},{visibility:'on'}]},{featureType:'landscape',elementType:'all',stylers:[{hue:'#eceae6'},{saturation:-49},{lightness:22},{visibility:'on'}]},{featureType:'poi.park',elementType:'all',stylers:[{hue:'#dddbd7'},{saturation:-81},{lightness:34},{visibility:'on'}]},{featureType:'poi.medical',elementType:'all',stylers:[{hue:'#dddbd7'},{saturation:-80},{lightness:-2},{visibility:'on'}]},{featureType:'poi.school',elementType:'all',stylers:[{hue:'#c8c6c3'},{saturation:-91},{lightness:-7},{visibility:'on'}]},{featureType:'landscape.natural',elementType:'all',stylers:[{hue:'#c8c6c3'},{saturation:-71},{lightness:-18},{visibility:'on'}]},{featureType:'road.highway',elementType:'all',stylers:[{hue:'#dddbd7'},{saturation:-92},{lightness:60},{visibility:'on'}]},{featureType:'poi',elementType:'all',stylers:[{hue:'#dddbd7'},{saturation:-81},{lightness:34},{visibility:'on'}]},{featureType:'road.arterial',elementType:'all',stylers:[{hue:'#dddbd7'},{saturation:-92},{lightness:37},{visibility:'on'}]},{featureType:'transit',elementType:'geometry',stylers:[{hue:'#c8c6c3'},{saturation:4},{lightness:10},{visibility:'on'}]}];
+
+/*  Map Init */
+
+    function clearClusters(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        markerClusterer.clearMarkers();
+      }
+
+
+ function initialize() {
+    var mapOptions = {
+      center: new google.maps.LatLng(0,0),
+      zoom: 3,
+      mapTypeId: google.maps.MapTypeId.ROADMAP,
+      scrollwheel: true,
+      icon: "http://localhost/map_ci/assets/img/marker_green.png",
+      styles: mapStyles,
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+   };
+
+
+     map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+     infoWindow = new google.maps.InfoWindow();
+
+      google.maps.event.addListener(map, 'click', function() {
+      infoWindow.close();
+   });
+
+
+}
+google.maps.event.addDomListener(window, 'load', initialize);
+
+
+/* Atm Json */
+ $.ajax({
+    url:'http://stallioni.in/Bitcoins/Bitcoin-ATM-Locations-Find-Your-Nearest-Bitcoin-ATM-Locations/index/getatm.json',
+    method:'post',
+    success:function(data) { $("#loader").hide();              
+
+      create_marker_by_search(data);
+
+      var mc = new MarkerClusterer(map, markers);
+      mc.repaint();
+
+   },
+           error: function(return_data,status,error) { 
+            $("#loader").hide(); 
+            console.log(error);
+            alert('Error occured... Please try again');
+   }
+ });
+
+
+
+ $.ajax({
+    url:'http://stallioni.in/Bitcoins/storesApi/index/stores.json',
+    method:'post',
+    success:function(data) {    
+       create_marker_stores(data);      
+var mc = new MarkerClusterer(map, markers);
+mc.repaint();     
+   },
+           error: function(return_data,status,error) { 
+            $("#loader").hide(); 
+            console.log(error);
+            alert('Error occured... Please try again');
+   }
+ });
+
+
+
+ $.ajax({
+    url:'http://stallioni.in/Bitcoins/classifiedsApi/index/classifieds.json',
+    method:'post',
+    success:function(data) { 
+       create_marker_classifieds(data);
+var mc = new MarkerClusterer(map, markers);
+mc.repaint();            
+
+   },
+           error: function(return_data,status,error) { 
+            $("#loader").hide(); 
+            console.log(error);
+            alert('Error occured... Please try again');
+   }
+ });
+
+
+
+ $.ajax({
+    url:'http://stallioni.in/Bitcoins/offersApi/index/offers.json',
+    method:'post',
+    success:function(data) {       
+               create_marker_offers(data);     
+var mc = new MarkerClusterer(map, markers);
+mc.repaint();         
+
+   },
+           error: function(return_data,status,error) { 
+            $("#loader").hide(); 
+            console.log(error);
+            alert('Error occured... Please try again');
+   }
+ });
+
+
+/* Form Json */
+
+  $.ajax({
+        type: "GET",
+        url: "http://stallioni.in/Bitcoins/searchApi/index/search.json",
+        success: function(data) {  console.log(data);
+
+                /* Manufacturer filter form */
+                    $.map(data.data.search.amts.manufacturer,function(value, index) {
+                          $("#manufacturer").append('<option value="'+ index +'">'+ value +'</option>')
+                    }); 
+                    $.map(data.data.search.amts.coinType,function(value, index) {
+                          $("#coin").append('<option value="'+ index +'">'+ value +'</option>')
+                    }); 
+                    $.map(data.data.search.amts.country,function(value, index) { 
+                          $("#country").append('<option value="'+index+'">'+ value +'</option>')
+ 
+                    });
+                    $.map(data.data.search.amts.distance,function(value, index) {
+                            $("#distance").append('<option value="'+index+'">'+ value +'</option>')
+                    });
+                    $.map(data.data.search.amts.all_atm,function(value, index) { 
+                            $("#AllAtms").append('<option value="'+index+'">'+ value +'</option>')
+                  });
+               /* Manufactors End */
+
+
+
+
+              /* offer form */
+
+                    $.map(data.data.search.offers.category,function(value, index) { 
+
+                            $("#category-offer").append('<option value="'+index+'">'+ value +'</option>')
+                    }); 
+                    $.map(data.data.search.offers.offer_type,function(value, index) {
+
+                            $("#offer_type-offer").append('<option value="'+index+'">'+ value +'</option>')
+
+                    }); 
+                    $.map(data.data.search.offers.all_stores,function(value, index) { 
+
+                            $("#all_stores-offer").append('<option value="'+index+'">'+ value +'</option>')
+ 
+                    });
+             /* offer end */
+
+ 
+             /* stores form */
+ $.map(data.data.search.stores.category,function(value, index) { 
+
+                            $("#category-stores").append('<option value="'+index+'">'+ value +'</option>')
+                    }); 
+ $.map(data.data.search.stores.distance,function(value, index) {
+
+                            $("#distance-stores").append('<option value="'+index+'">'+ value +'</option>')
+                    }); 
+            
+ $.map(data.data.search.stores.country,function(value, index) {
+
+                            $("#country-stores").append('<option value="'+index+'">'+ value +'</option>')
+                    }); 
+ $.map(data.data.search.stores.coinType,function(value, index) {
+
+                            $("#coinType-stores").append('<option value="'+index+'">'+ value +'</option>')
+                    }); 
+ $.map(data.data.search.stores.all_stores,function(value, index) {
+
+                            $("#all_stores-stores").append('<option value="'+index+'">'+ value +'</option>')
+                    }); 
+
+             /*  stores end */   
+
+            },
+           error: function(return_data,status,error) { 
+            $("#loader").hide(); console.log(error);
+            alert('Error occured in form... Please try again');
+            }
+        });
+ /* Filter Reults */
+
+ 
+
+
+function createMarker(latlng, name, address1, address2, postalCode,icon_get){
+   var marker = new google.maps.Marker({
+      map: map,
+      zoom: 12,
+      mapTypeId: google.maps.MapTypeId.ROADMAP,
+      position: latlng,
+      icon: icon_get,
+      scrollwheel: true,
+      title: name,
+      styles: mapStyles
+   });
+     markers.push(marker);
+     google.maps.event.addListener(marker, 'click', function() {
+     var iwContent = '<div id="iw_container">' +
+            '<div class="iw_title">' + name + '</div>' +
+         '<div class="iw_content">' + address1 + '<br />' +
+         address2 + '<br />' +
+         postalCode + '</div></div>';
+         infoWindow.setContent(iwContent);
+         infoWindow.open(map, marker);
+   });
+}
+
+function DeleteMarkers() {     
+     var mc = new MarkerClusterer(map,markers);   
+     mc.clearMarkers();
+    // for (var i = 0; i < markers.length; i++) {
+     //markers[i].setMap(null);
+     //}
+     markers = []; 
+    }
+
+
+
+$(document).ready(function() {
+        /* atm fillter */
+      $(".filter_get_result_atm").click(function() {
+        console.log($("#manufacturer").val()); 
+        DeleteMarkers(); 
+        $("#loader").show();
+         var manufacturer =  $("#manufacturer").val(); 
+         var country      =  $("#country").val(); 
+         var distance     =  $("#distance").val(); 
+         var coin         =  $("#coin").val();
+         var atm          =  $("#AllAtms").val();            
+         var zipcode      =  $("#zipcode").val();
+         var place_atm    =  $("#place_atm").val(); 
+
+        /* $.ajax({
+          type      : 'POST',
+          url       : 'http://stallioni.in/Bitcoins/Bitcoin-ATM-Locations-Find-Your-Nearest-Bitcoin-ATM-Locations/search/search.json',
+          dataType  : 'json',
+          data      : {  'm': manufacturer,loc:country,dis:distance,coin:coin,atm:atm,a:place_atm,location:zipcode}, 
+          success: function(return_data) {
+             $("#loader").hide(); 
+
+               create_marker_by_search(return_data);
+          },
+           error: function(return_data,status,error) { 
+            $("#loader").hide(); console.log(error);
+            alert("Error while fetching...");
+            }
+          });*/
+     });
+    /* Atm filter */
+    
+    /* Store filter */
+      $(".filter_get_result_stores").click(function() {
+        alert('function clicked'); $("#loader").show();
+        var store     =  $("#all_stores-stores").val(); 
+        var category  =  $("#category-stores").val(); 
+        var coin_type =  $("#coinType-stores").val(); 
+        var place     =  $("#place_store").val(); 
+        var county    =  $("#country-stores").val(); 
+        var zipcode   =  $("#zipcode_store").val(); 
+        var distance  =  $("#distance-stores").val(); 
+        $.ajax({
+                 url:'http://stallioni.in/Bitcoins/storesApi/search/stores.json',
+                 method:'post',
+                 data: {store:store,cat:category,coin:coin_type,n:place,loc:country,location:zipcode,dis:distance}, 
+                 success:function(data) {
+                     DeleteMarkers()
+                     $("#loader").hide();
+                     create_marker_stores(data);          
+                     console.log(data);                        
+                 },error: function(return_data,status,error) { 
+                   $("#loader").hide(); console.log(error);
+                   alert("Error while fetching...");
+                 } 
+        });
+        //store:store,cat:category,coin:coin_type,n:place,loc:country,location:zipcode:zipcode,dis:distance
+     });
+    /* Store end */
+
+    /* Offer filter */
+      $(".filter_get_result_offers").click(function() {
+        var category_offer   = $("#category-offer").val();
+        var offer_type_offer = $("#offer_type-offer").val();
+        var all_stores_offer = $("#all_stores-offer").val();  
+
+        alert(category_offer+offer_type_offer+all_stores_offer);
+        $.ajax({
+                 url:'http://stallioni.in/Bitcoins/offersApi/search/offers.json',
+                 method:'post',
+                 data: {cat:category_offer, t:offer_type_offer,offer:all_stores_offer}, 
+                 //cat:category_offer, offer:offer_type_offer,t:all_stores_offer
+                 success:function(data) {
+                     DeleteMarkers();
+                     $("#loader").hide();
+                     create_marker_offers(data);          
+                     console.log(data);                        
+                 },error: function(return_data,status,error) { 
+                   $("#loader").hide(); console.log(error);
+                   alert("Error while fetching...");
+                 } 
+        });
+
+
+      });
+     /* Offer filter */
+
+   /*Filter Creation */
+
+      $("#filter_inital").click(function() {
+              $("#filter_inital").hide();
+              $("#filter_categories").show();
+      });
+
+   $(".stores-category").click(function() {
+
+        $("#filter_categories").hide();
+        $("#filters-stores").show();
+
+   });
+
+   $(".offers-category").click(function() {
+
+        $("#filter_categories").hide();
+        $("#filters-offers").show();
+
+   });
+
+   $(".atms-category").click(function() {
+
+        $("#filter_categories").hide();
+        $("#filters-atm").show();
+
+   });
+
+   $(".classifieds-category").click(function() { alert('json not arrived yet');
+
+        //$("#filter_categories").hide();
+        $("#filters-classifieds").show();
+
+   });
+
+   /* filter end */
+ 
+   /* remove filter */
+    $(".remove_filter").click(function() {
+     
+        
+        $("#filters-classifieds").hide();
+        $("#filters-offers").hide();
+        $("#filters-atm").hide();
+        $("#filters-stores").hide();
+        $("#filter_inital").show();
+  
+
+   });
+  /* remove filter */
+   
+
+    });
+
+   function create_marker_by_search(search_results) {
+
+            var  i = 0; 
+  
+               $.map(search_results.data.atms,function(value, index) { i++;
+
+                    var id          = value.Atm.id;
+                    var lat         = value.Atm.latitude;
+                    var lon         = value.Atm.longitude;
+                    var title       = value.Atm.name;
+                    var description = value.Atm.description;
+                    var address     = value.Atm.address;
+                    var contact_no  = value.Atm.contact_no;
+                    var latlng      = new google.maps.LatLng(lat,lon);
+                    var icon        = "http://localhost/map_ci/assets/img/atm.png";
+                    createMarker(latlng ,title, address, address, contact_no,icon);
+             });
+
+                 console.log(i); $("#result_div").html( i + ' Atms Found')
+     }
+
+
+
+   function create_marker_stores(search_results) {
+
+            var  i = 0; 
+  
+                    $.map(search_results.data.stores,function(value, index) { i++;
+
+                    var lat  = value.Store.latitude;
+                    var lon  = value.Store.longitude;
+                    var icon = "http://localhost/map_ci/assets/img/store.png";
+
+                    var latlng      = new google.maps.LatLng(lat,lon);
+                    createMarker(latlng ,'title', 'address', 'address', 'contact_no',icon);
+             });
+
+
+              console.log(i); $("#result_div").html( i + ' Stores Found')
+     }
+
+function create_marker_offers(search_results) { console.log('called offer');
+
+            var  i = 0; 
+  
+                    $.map(search_results.data.offers,function(value, index) { i++;
+
+                    var lat  = value.Store.latitude;
+                    var lon  = value.Store.longitude;
+                    var icon = "http://localhost/map_ci/assets/img/offers.png";
+
+                    var latlng      = new google.maps.LatLng(lat,lon);
+                    createMarker(latlng ,'title', 'address', 'address', 'contact_no',icon);
+             });
+
+
+              console.log(i); $("#result_div").html( i + ' Offers Found')
+     }
+
+function create_marker_classifieds(search_results) {
+
+            var  i = 0; 
+  
+                    $.map(search_results.data.classified,function(value, index) { console.log(value); i++;
+
+                    var lat  = value.Classified.latitude;
+                    var lon  = value.Classified.longitude;
+                    var icon = "http://localhost/map_ci/assets/img/class.png";
+
+                    var latlng      = new google.maps.LatLng(lat,lon);
+                    createMarker(latlng ,'title', 'address', 'address', 'contact_no',icon);
+             });
+
+
+              console.log(i); $("#result_div").html( i + ' Classifieds Found')
+     }
+
+</script>
