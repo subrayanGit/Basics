@@ -1,0 +1,31 @@
+<?php
+class Api_Open_samples extends Api
+{
+  public function get($token = null)
+    {      
+      $token = isset($_REQUEST['token']) ? $_REQUEST['token'] : '';        
+      if($token)
+      {
+        return $this->getRecord(($token));
+      }
+      else
+      {        
+        return Api::responseError(404,'Invalid Token');
+      }
+    }   
+
+  
+  public function getRecord() {
+ $companyid = (isset($_SESSION['userParentId']) && $_SESSION['userParentId'] > 0) ? $_SESSION['userParentId'] : $_SESSION['userId'];
+   $where_cond = ' AND status =1';
+   $s_qry = "select * from track_order where company_id  = '$companyid' $where_cond";
+   $query=@mysql_query($s_qry);
+   $rwo = @mysql_fetch_array($query);
+
+   var_dump(@mysql_num_rows( $query));
+ }
+
+}
+
+
+

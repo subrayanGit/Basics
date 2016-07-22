@@ -1,0 +1,123 @@
+<?php
+header("Access-Control-Allow-Origin: *");
+header('Content-Type: application/json');
+header("Access-Control-Allow-Methods: POST, GET,PUT,DELETE");
+header("Access-Control-Allow-Headers: Content-Type");
+class Api_Login extends Api
+{
+    public function __construct()
+    {        
+        // In here you could initialize some shared logic between this API and rest of the project
+    } 
+    public function get($token = null)
+    {   
+      $token = isset($_REQUEST['token']) ? $_REQUEST['token'] : '';
+      $method = isset($_REQUEST['method']) ? $_REQUEST['method'] : '';     
+      if($method)
+      {
+        return $this->$method($token);
+      }
+      else
+      {        
+        return Api::responseError(404,'Method not exist');
+      }
+    }  
+    
+    /**
+     * Create record
+     */
+    public function post()
+    {            
+       // In real world there would be call to model with validation and probably token checking
+       $username =  $_POST['username'];
+       $password =  $_POST['password'];
+       $userinfo =  $this->Db()->getrow('companyregistration','*',
+          array('where'=>array('userName'=>$username,'userPassword'=>$password))
+            );
+
+        return Api::responseOk($this->format($userinfo));
+    }
+    public function logout($token = null)
+    {
+        $aResponse['message'] = 'Incorrect token';
+        $aResponse['result'] = FALSE;
+        $delete = $this->Db()->delete('track_auth_token',array('token'=>$token));
+        if($delete)
+        {
+            $aResponse['result'] = TRUE;
+            $aResponse['message'] = 'Logout successfully';
+        }
+        return Api::responseOk($aResponse);
+    }  
+    
+    private function format($record)
+    {
+        $aResponse = array();
+        if(count((array)$record) > 0)
+        {
+            unset($record->userPassword);            
+            $aResponse['message'] = 'success';
+            $token = $this->generateToken($record);
+            $type = "guest";
+            $user_role = 'visitor';
+            $company_id = (isset($record->userParentId) && $record->userParentId > 0) ? $record->userParentId : $record->userId;
+            if(isset($record->userLoginType))
+            {
+                if($record->userLoginType == '1')
+                {
+                    $type = "company";
+                    $user_role = 'owner';
+                }
+                elseif($record->userLoginType == '3')
+                {
+                    $type = "company";
+                    $user_role = 'employee';
+                }
+                elseif($record->userLoginType == '2')
+                {
+                    $type = "messenger";
+                    $user_role = 'owner';
+                }
+                elseif($record->userLoginType == '4')
+                {
+                    $type = "messenger";
+                    $user_role = 'employee';
+                }
+                else
+                {
+                    $type = "guest";
+                }
+            }
+            $data = array(
+                'token'=> $token,
+                'userid'=>$record->userId,
+                'token_time'=>date('Y-m-d H:i:s'),
+                'device'=> 'IOS',
+                'user_type'=> $type,
+                'user_role'=> $user_role,
+                'user_login_type'=>$record->userLoginType,
+                'company_id' => $company_id
+                );
+            $token_info = $this->Db()->insert('track_auth_token',$data);
+        }
+        else
+        {
+            $aResponse['message'] = 'invalid username and password';
+            $token = $this->generateToken();
+        }
+        $aResponse['userdetails'] = $record;
+        $aResponse['token'] = $token;
+               
+        return $aResponse;
+    }
+
+    /**
+     * Delete record
+     */
+    public function delete( $id = null )
+    {
+        // In real world there would be call to model with validation and probably token checking
+
+        return Api::responseOk('OK', array());
+    }
+}

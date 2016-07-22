@@ -1,0 +1,13 @@
+RewriteEngine on
+RewriteBase /445/api/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+RewriteRule .* index.php/$0 [PT]
+#RewriteRule ^(.*)$ index.php?rquest=$1 [QSA,NC,L]
+
+#RewriteCond %{REQUEST_FILENAME} -d
+#RewriteRule ^(.*)$ index.php [QSA,NC,L]
+
+#RewriteCond %{REQUEST_FILENAME} -s
+#RewriteRule ^(.*)$ index.php [QSA,NC,L] 
