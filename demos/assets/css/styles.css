@@ -1,0 +1,129 @@
+/*
+A custom Bootstrap 3.1 theme from http://bootply.com\
+
+This CSS code should follow the 'bootstrap.css'
+in your HTML file.
+
+license: MIT
+author: bootply.com
+*/
+
+
+@media only screen and (max-width: 480px) {
+    #filter_categories .btn-sample {
+    width: 50%;
+    clear: both;
+    margin: 5px 0px;  
+    }
+}
+
+
+html,body{
+  	height:100%;
+}
+
+body{
+  	padding-top:50px; /*padding for navbar*/
+        background-color:#e3e3e3;
+}
+
+
+
+
+
+
+.btn-sample {
+ color: #ffffff;
+ background-color: #BD1B28;
+ border-color: #000000;
+}
+
+.btn-sample:hover,
+.btn-sample:focus,
+.btn-sample:active,
+.btn-sample.active,
+.open .dropdown-toggle.btn-sample {
+ color: #ffffff;
+ background-color: #851F1F;
+ border-color: #000000;
+}
+
+.btn-sample:active,
+.btn-sample.active,
+.open .dropdown-toggle.btn-sample {
+ background-image: none;
+}
+
+.btn-sample.disabled,
+.btn-sample[disabled],
+fieldset[disabled] .btn-sample,
+.btn-sample.disabled:hover,
+.btn-sample[disabled]:hover,
+fieldset[disabled] .btn-sample:hover,
+.btn-sample.disabled:focus,
+.btn-sample[disabled]:focus,
+fieldset[disabled] .btn-sample:focus,
+.btn-sample.disabled:active,
+.btn-sample[disabled]:active,
+fieldset[disabled] .btn-sample:active,
+.btn-sample.disabled.active,
+.btn-sample[disabled].active,
+fieldset[disabled] .btn-sample.active {
+ background-color: #BD1B28;
+ border-color: #000000;
+}
+
+.btn-sample .badge {
+ color: #BD1B28;
+ background-color: #ffffff;
+} 
+
+.navbar-custom .form-control:focus {
+	border-color: #49bfff;
+	outline: 0;
+	-webkit-box-shadow: inset 0 0 0;
+	box-shadow: inset 0 0 0;
+}
+
+#main, #main>.row {
+	height:100%;
+}
+
+#main>.row {
+    overflow-y:scroll;
+}
+
+#left {
+	height:100%;
+}
+
+#map-canvas {
+    width:100%;
+    height:calc(100% - 0);
+    position:absolute;
+    right:0;
+    top:0%;
+    bottom:0%;
+    overflow:hidden;
+}
+
+
+.gm-style-iw {
+   width: 350px !important;
+   top: 0 !important;
+   left: 0 !important;
+   border-radius: 2px 2px 0 0;
+}
+
+#iw-container  .iw-title {
+   font-family: 'Open Sans Condensed', sans-serif;
+   font-size: 22px;
+   font-weight: 400;
+   padding: 10px;
+   background-color: #48b5e9;
+   color: white;
+   margin: 1px;
+   border-radius: 2px 2px 0 0; /* In accordance with the rounding of the default infowindow corners. */
+}
+
+
