@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <title> Javascript object array demo </title>
+      <script src="jquery.min.js"> </script>
+   </head>
+   <body>
+      Current Object array :
+      <div class="object_array"> <code>[{id:5,order:9},{id:23,order:2},{id:16,order:4 }] </code></div>
+      <br> <br>
+      Ascending order
+      <div class="ascend_array"></div>
+   </body>
+   <script>
+      var json_one = [{"id":5,"order":9},{"id":23,"order":2},{"id":16,"order":4 }]; 
+      var array_asc = []; var ii=0;
+      $.map(json_one, function(value, index) {  console.log(ii); ii++;
+          if(value.order != null)
+            array_asc[value.order] = value;
+      }); console.log(array_asc);
+      $(".ascend_array").append('[');
+      $.map(array_asc, function(value, index) {
+        if(value != null)
+           $(".ascend_array").append('<code>{id:'+value.id+',order'+value.order+'},</code>' );
+          
+      });
+      $(".ascend_array").append(']');
+   </script>
+</html>
